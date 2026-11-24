@@ -325,6 +325,9 @@ export function searchMasail(masail: Masla[], rawQuery: string): SearchResult[] 
   for (const masla of masail) {
     const titleN = normalizeUrdu(masla.title);
     const topicN = normalizeUrdu(masla.topic);
+    const babN = normalizeUrdu(masla.bab ?? '');
+    const risalaN = normalizeUrdu(masla.risalaName ?? '');
+    const sawalStr = masla.sawalNumber ? String(masla.sawalNumber) : '';
     const questionN = normalizeUrdu(masla.question);
     const answerN = normalizeUrdu(masla.answer);
     const dalilN = normalizeUrdu(masla.dalil);
@@ -338,7 +341,12 @@ export function searchMasail(masail: Masla[], rawQuery: string): SearchResult[] 
     if (normUrduQuery.length >= 2) {
       if (titleN.includes(normUrduQuery)) score += 30;
       if (questionN.includes(normUrduQuery)) score += 22;
-      if (topicN.includes(normUrduQuery)) score += 20;
+      if (topicN.includes(normUrduQuery) || babN.includes(normUrduQuery) || risalaN.includes(normUrduQuery)) {
+        score += 20;
+      }
+    }
+    if (sawalStr && trimmed === sawalStr) {
+      score += 25;
     }
     if (normRomanQuery.length >= 2 && keywordsRomanN.includes(normRomanQuery)) {
       score += 24;
@@ -349,7 +357,9 @@ export function searchMasail(masail: Masla[], rawQuery: string): SearchResult[] 
     for (const group of expandedGroups) {
       let groupScore = 0;
       for (const term of group) {
-        if (topicN.includes(term)) groupScore = Math.max(groupScore, 14);
+        if (topicN.includes(term) || babN.includes(term) || risalaN.includes(term)) {
+          groupScore = Math.max(groupScore, 14);
+        }
         if (titleN.includes(term)) groupScore = Math.max(groupScore, 12);
         if (keywordsUrduN.includes(term)) groupScore = Math.max(groupScore, 11);
         if (keywordsRomanN.includes(term)) groupScore = Math.max(groupScore, 11);

@@ -21,12 +21,12 @@ export default defineConfig(() => {
         ],
         manifest: {
           id: '/',
-          name: 'فتاویٰ رضویہ - مکمل کتاب - آف لائن',
-          short_name: 'فتاویٰ رضویہ',
+          name: 'Fatawa Razvia - مکمل 30 جلدیں',
+          short_name: 'Fatawa Razvia',
           description:
-            'فتاویٰ رضویہ کی تمام 30 جلدوں سے مستند شرعی مسائل کی مکمل آف لائن کتاب اور سرچ ایپ۔',
-          theme_color: '#0A0F1E',
-          background_color: '#0A0F1E',
+            'فتاویٰ رضویہ کی تمام 30 جلدوں سے مستند شرعی مسائل اردو اور رومن اردو میں تلاش کرنے کی مکمل آف لائن اسلامی ایپ۔',
+          theme_color: '#0B3D2E',
+          background_color: '#FFF8E7',
           display: 'standalone',
           dir: 'rtl',
           lang: 'ur',
