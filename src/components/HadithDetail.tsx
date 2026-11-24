@@ -8,42 +8,44 @@ import {
   Copy,
   Share2,
 } from 'lucide-react';
-import { VOLUMES_META } from '../data/volumesMeta';
-import { Masla } from '../types/fatwa';
+import { getBookMeta, getVolumeMeta } from '../data/bukhariMeta';
+import { Hadith } from '../types/hadith';
 
-interface MaslaDetailProps {
-  masla: Masla;
+interface HadithDetailProps {
+  hadith: Hadith;
   isBookmarked: boolean;
   onToggleBookmark: (id: string) => void;
   onBack: () => void;
-  onNavigateMasla?: (masla: Masla) => void;
-  prevMasla?: Masla;
-  nextMasla?: Masla;
+  onNavigateHadith?: (hadith: Hadith) => void;
+  prevHadith?: Hadith;
+  nextHadith?: Hadith;
   currentPage?: number;
   totalPages?: number;
 }
 
-export const MaslaDetail: React.FC<MaslaDetailProps> = ({
-  masla,
+export const HadithDetail: React.FC<HadithDetailProps> = ({
+  hadith,
   isBookmarked,
   onToggleBookmark,
   onBack,
-  onNavigateMasla,
-  prevMasla,
-  nextMasla,
+  onNavigateHadith,
+  prevHadith,
+  nextHadith,
   currentPage,
   totalPages,
 }) => {
   const [copied, setCopied] = useState(false);
   const [sharedMsg, setSharedMsg] = useState(false);
 
-  const volInfo = VOLUMES_META.find((v) => v.volume === masla.volume);
-  const sawalDisplay = masla.sawalNumber ? `سوال نمبر ${masla.sawalNumber}` : '';
-  const risalaDisplay = masla.risalaName ? `رسالہ: ${masla.risalaName}` : '';
-  const referenceText = `العطایا النبویہ فی الفتاویٰ الرضویہ، جلد نمبر ${masla.volume}، ${masla.bab ?? masla.topic}${masla.risalaName ? `، ${masla.risalaName}` : ''}${sawalDisplay ? ` (${sawalDisplay})` : ''}`;
+  const volInfo = getVolumeMeta(hadith.volume);
+  const bookInfo = getBookMeta(hadith.bookNumber);
+  const bookTitle = bookInfo
+    ? `${bookInfo.titleArabic} — ${bookInfo.titleUrdu}`
+    : `کتاب نمبر ${hadith.bookNumber}`;
+  const referenceText = `صحیح بخاری شریف، جلد نمبر ${hadith.volume}، کتاب ${hadith.bookNumber} (${bookTitle})، حدیث نمبر ${hadith.hadithNumber}`;
 
   const buildShareText = () => {
-    return `${masla.title}${sawalDisplay ? `\n${sawalDisplay}` : ''}${risalaDisplay ? ` | ${risalaDisplay}` : ''}\n\nسوال:\n${masla.question}\n\nجواب / فتویٰ:\n${masla.answer}\n\nدلیل:\n${masla.dalil}\n\nضروری وضاحت:\n${masla.explanation}\n\nحوالہ: ${referenceText}`;
+    return `صحیح بخاری شریف — حدیث نمبر ${hadith.hadithNumber}\nباب / کتاب: ${bookTitle}\nراوی: ${hadith.narrator}\n\nعربی متن:\n${hadith.arabicText}\n\nاردو ترجمہ:\n${hadith.urduText}\n\nحوالہ: ${referenceText}`;
   };
 
   const handleCopy = async () => {
@@ -52,7 +54,6 @@ export const MaslaDetail: React.FC<MaslaDetailProps> = ({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback copy
       const textarea = document.createElement('textarea');
       textarea.value = buildShareText();
       document.body.appendChild(textarea);
@@ -69,7 +70,7 @@ export const MaslaDetail: React.FC<MaslaDetailProps> = ({
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `فتاویٰ رضویہ — ${masla.title}`,
+          title: `صحیح بخاری شریف — حدیث نمبر ${hadith.hadithNumber}`,
           text,
         });
         return;
@@ -96,20 +97,16 @@ export const MaslaDetail: React.FC<MaslaDetailProps> = ({
         </button>
 
         <div className="flex flex-wrap items-center gap-2.5 text-base sm:text-lg text-[var(--text-secondary)] urdu-text tabular-nums">
-          <span>جلد نمبر {masla.volume}</span>
-          {sawalDisplay && (
-            <>
-              <span aria-hidden="true">·</span>
-              <span>{sawalDisplay}</span>
-            </>
-          )}
+          <span>جلد نمبر {hadith.volume}</span>
           <span aria-hidden="true">·</span>
-          <span>{masla.bab ?? masla.topic}</span>
+          <span>کتاب {hadith.bookNumber}</span>
+          <span aria-hidden="true">·</span>
+          <span>حدیث نمبر {hadith.hadithNumber}</span>
           {currentPage && totalPages && (
             <>
               <span aria-hidden="true">·</span>
               <span className="text-[#8E6C0B] dark:text-[#E8C547]">
-                فتویٰ {currentPage} از {totalPages}
+                {currentPage} از {totalPages}
               </span>
             </>
           )}
@@ -125,29 +122,24 @@ export const MaslaDetail: React.FC<MaslaDetailProps> = ({
               <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-base sm:text-lg text-[#8E6C0B] dark:text-[#E8C547] urdu-text mb-2">
                 <BookOpenCheck className="w-6 h-6 shrink-0" aria-hidden="true" />
                 <span>
-                  فتاویٰ رضویہ — جلد نمبر {masla.volume}
+                  صحیح بخاری شریف — جلد نمبر {hadith.volume}
                   {volInfo ? ` (${volInfo.subtitle})` : ''}
                 </span>
-                {sawalDisplay && (
-                  <>
-                    <span aria-hidden="true">·</span>
-                    <span className="text-[#0B3D2E] dark:text-[#E8C547]">{sawalDisplay}</span>
-                  </>
-                )}
               </div>
-              <h1 className="text-3xl sm:text-4xl text-[#0B3D2E] dark:text-[#FFF8E7] urdu-heading">
-                {masla.title}
+              <h1 className="text-3xl sm:text-4xl text-[#0B3D2E] dark:text-[#FFF8E7] urdu-heading tabular-nums">
+                حدیث نمبر {hadith.hadithNumber}
               </h1>
-              {masla.risalaName && (
-                <p className="mt-2 text-lg sm:text-xl text-[var(--text-secondary)] urdu-text">
-                  رسالے کا نام: {masla.risalaName}
-                </p>
-              )}
+              <p className="mt-2 text-lg sm:text-xl text-[#0B3D2E] dark:text-[#E8C547] urdu-text">
+                باب / کتاب: {bookTitle}
+              </p>
+              <p className="mt-1 text-lg sm:text-xl text-[var(--text-secondary)] urdu-text">
+                راوی کا نام: {hadith.narrator}
+              </p>
             </div>
 
             <button
               type="button"
-              onClick={() => onToggleBookmark(masla.id)}
+              onClick={() => onToggleBookmark(hadith.id)}
               className={`px-5 py-2.5 rounded-xl flex items-center justify-center gap-2 text-base sm:text-lg urdu-text whitespace-nowrap shrink-0 cursor-pointer min-h-[48px] transition-colors ${
                 isBookmarked
                   ? 'gold-btn'
@@ -162,55 +154,33 @@ export const MaslaDetail: React.FC<MaslaDetailProps> = ({
             </button>
           </header>
 
-          {/* 1. سوال */}
-          <section aria-labelledby="section-question" className="pb-6 border-b border-[var(--border-subtle)]">
+          {/* 1. عربی متن مکمل (اوپر) */}
+          <section aria-labelledby="section-arabic" className="pb-6 border-b border-[var(--border-subtle)]">
             <h2
-              id="section-question"
+              id="section-arabic"
               className="text-2xl sm:text-3xl text-[#0B3D2E] dark:text-[#E8C547] urdu-heading mb-3"
             >
-              1. سوال
+              عربی متن
             </h2>
-            <p className="text-[var(--text-primary)] urdu-prose">
-              {masla.question}
+            <p
+              lang="ar"
+              dir="rtl"
+              className="text-[var(--text-primary)] arabic-hadith bg-[var(--bg-surface-alt)] border border-[#C9A227]/60 rounded-xl p-5 sm:p-7"
+            >
+              {hadith.arabicText}
             </p>
           </section>
 
-          {/* 2. جواب / فتویٰ */}
-          <section aria-labelledby="section-answer" className="pb-6 border-b border-[var(--border-subtle)]">
+          {/* 2. اردو ترجمہ مکمل (نیچے) */}
+          <section aria-labelledby="section-urdu" className="pb-6 border-b border-[var(--border-subtle)]">
             <h2
-              id="section-answer"
+              id="section-urdu"
               className="text-2xl sm:text-3xl text-[#0B3D2E] dark:text-[#E8C547] urdu-heading mb-3"
             >
-              2. جواب / فتویٰ
+              اردو ترجمہ
             </h2>
             <p className="text-[var(--text-primary)] urdu-prose">
-              {masla.answer}
-            </p>
-          </section>
-
-          {/* 3. دلیل */}
-          <section aria-labelledby="section-dalil" className="pb-6 border-b border-[var(--border-subtle)]">
-            <h2
-              id="section-dalil"
-              className="text-2xl sm:text-3xl text-[#0B3D2E] dark:text-[#E8C547] urdu-heading mb-3"
-            >
-              3. دلیل (قرآن و حدیث سے)
-            </h2>
-            <p className="text-[var(--text-primary)] urdu-prose bg-[var(--bg-surface-alt)] border border-[#C9A227]/55 rounded-xl p-5 sm:p-6">
-              {masla.dalil}
-            </p>
-          </section>
-
-          {/* 4. ضروری وضاحت */}
-          <section aria-labelledby="section-explanation" className="pb-6 border-b border-[var(--border-subtle)]">
-            <h2
-              id="section-explanation"
-              className="text-2xl sm:text-3xl text-[#0B3D2E] dark:text-[#E8C547] urdu-heading mb-3"
-            >
-              4. ضروری وضاحت
-            </h2>
-            <p className="text-[var(--text-primary)] urdu-prose">
-              {masla.explanation}
+              {hadith.urduText}
             </p>
           </section>
 
@@ -245,7 +215,7 @@ export const MaslaDetail: React.FC<MaslaDetailProps> = ({
                 className="emerald-btn px-5 py-2.5 rounded-xl text-base sm:text-lg urdu-text flex items-center gap-2 cursor-pointer min-h-[48px]"
               >
                 <Share2 className="w-5 h-5" aria-hidden="true" />
-                <span>{sharedMsg ? 'لنک/متن کاپی ہو گیا' : 'شیئر کریں'}</span>
+                <span>{sharedMsg ? 'متن کاپی ہو گیا' : 'شیئر کریں'}</span>
               </button>
             </div>
           </footer>
@@ -254,33 +224,33 @@ export const MaslaDetail: React.FC<MaslaDetailProps> = ({
 
       {/* Page-Turning Controls */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        {onNavigateMasla && (prevMasla || nextMasla) ? (
+        {onNavigateHadith && (prevHadith || nextHadith) ? (
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <button
               type="button"
-              disabled={!prevMasla}
-              onClick={() => prevMasla && onNavigateMasla(prevMasla)}
+              disabled={!prevHadith}
+              onClick={() => prevHadith && onNavigateHadith(prevHadith)}
               className={`flex-1 sm:flex-initial px-6 py-3 rounded-xl flex items-center justify-center gap-2 text-lg sm:text-xl urdu-text min-h-[52px] ${
-                prevMasla
+                prevHadith
                   ? 'emerald-btn cursor-pointer'
                   : 'islamic-card opacity-45 cursor-not-allowed text-[var(--text-secondary)]'
               }`}
             >
               <ArrowRight className="w-5 h-5 shrink-0" aria-hidden="true" />
-              <span>پچھلا فتویٰ</span>
+              <span>پچھلی حدیث</span>
             </button>
 
             <button
               type="button"
-              disabled={!nextMasla}
-              onClick={() => nextMasla && onNavigateMasla(nextMasla)}
+              disabled={!nextHadith}
+              onClick={() => nextHadith && onNavigateHadith(nextHadith)}
               className={`flex-1 sm:flex-initial px-6 py-3 rounded-xl flex items-center justify-center gap-2 text-lg sm:text-xl urdu-text min-h-[52px] ${
-                nextMasla
+                nextHadith
                   ? 'emerald-btn cursor-pointer'
                   : 'islamic-card opacity-45 cursor-not-allowed text-[var(--text-secondary)]'
               }`}
             >
-              <span>اگلا فتویٰ</span>
+              <span>اگلی حدیث</span>
               <ArrowLeft className="w-5 h-5 shrink-0" aria-hidden="true" />
             </button>
           </div>

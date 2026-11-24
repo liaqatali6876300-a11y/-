@@ -1,8 +1,9 @@
-import { Masla } from '../types/fatwa';
+import { Hadith } from '../types/hadith';
+import { getBookMeta } from '../data/bukhariMeta';
 
-const ARABIC_DIACRITICS = /[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED]/g;
+const ARABIC_DIACRITICS = /[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g;
 
-export function normalizeUrdu(text: string): string {
+export function normalizeArabicUrdu(text: string): string {
   return text
     .replace(ARABIC_DIACRITICS, '')
     .replace(/[أإآٱ]/g, 'ا')
@@ -12,7 +13,6 @@ export function normalizeUrdu(text: string): string {
     .replace(/ؤ/g, 'و')
     .replace(/ئ/g, 'ی')
     .replace(/ے/g, 'ی')
-    .replace(/[ًٌٍَُِّْٰ]/g, '')
     .replace(/\s+/g, ' ')
     .trim()
     .toLowerCase();
@@ -38,247 +38,188 @@ export function normalizeRoman(text: string): string {
     .trim();
 }
 
-// Map common Roman Urdu words & English Islamic terms -> Urdu concepts & synonyms
 const ROMAN_TO_URDU_MAP: Record<string, string[]> = {
-  wazu: ['وضو', 'طہارت', 'مسح'],
-  wuzu: ['وضو', 'طہارت'],
-  wudu: ['وضو', 'طہارت'],
-  wadoo: ['وضو'],
-  ablution: ['وضو'],
-  masah: ['مسح', 'موزوں'],
-  ghusl: ['غسل', 'جنابت', 'پاکی'],
-  gusl: ['غسل', 'جنابت'],
-  nahana: ['غسل'],
-  janabat: ['جنابت', 'غسل'],
-  tayammum: ['تیمم', 'مٹی'],
+  wahi: ['وحی'],
+  wahy: ['وحی'],
+  niyyat: ['نیت', 'النيات'],
+  niyat: ['نیت'],
+  iman: ['ایمان', 'إيمان'],
+  imaan: ['ایمان'],
+  islam: ['اسلام'],
+  ilm: ['علم'],
+  wazu: ['وضو', 'الوضوء'],
+  wuzu: ['وضو', 'الوضوء'],
+  wudu: ['وضو', 'الوضوء'],
+  ghusl: ['غسل'],
+  gusl: ['غسل'],
+  tayammum: ['تیمم'],
   tayamum: ['تیمم'],
-  taharat: ['طہارت', 'پاکی', 'نجاست'],
-  paki: ['پاکی', 'طہارت'],
-  paaki: ['پاکی', 'طہارت'],
-  najasat: ['نجاست', 'ناپاک', 'پیشاب', 'خون'],
-  napak: ['ناپاک', 'نجاست'],
-  napaki: ['ناپاکی', 'نجاست', 'غسل'],
-  peshab: ['پیشاب', 'استنجا', 'نجاست'],
-  istinja: ['استنجا'],
-  khoon: ['خون', 'نجاست', 'وضو'],
-  haiz: ['حیض', 'ماہواری'],
-  nafas: ['نفاس'],
-  istihaza: ['استحاضہ'],
-  namaz: ['نماز', 'صلوٰۃ', 'فرائض', 'سجدہ'],
-  namaaz: ['نماز', 'صلوٰۃ'],
-  salah: ['نماز', 'صلوٰۃ'],
-  salat: ['نماز', 'صلوٰۃ'],
-  azan: ['اذان', 'اقامت'],
-  azaan: ['اذان', 'اقامت'],
-  iqamat: ['اقامت'],
+  haiz: ['حیض'],
+  namaz: ['نماز', 'صلاۃ', 'الصلاة'],
+  namaaz: ['نماز', 'صلاۃ'],
+  salat: ['صلاۃ', 'الصلاة', 'نماز'],
+  salah: ['صلاۃ', 'الصلاة', 'نماز'],
+  azan: ['اذان', 'الأذان'],
+  azaan: ['اذان', 'الأذان'],
   masjid: ['مسجد'],
-  imam: ['امام', 'امامت'],
-  imamat: ['امامت', 'امام'],
-  jamaat: ['جماعت'],
-  jamat: ['جماعت'],
-  sajda: ['سجدہ', 'سجدہ سہو'],
-  sajdah: ['سجدہ'],
-  sahw: ['سجدہ سہو'],
-  sahu: ['سجدہ سہو'],
-  tilawat: ['سجدہ تلاوت', 'تلاوت'],
-  ruku: ['رکوع'],
-  qiraat: ['قراءت', 'قرآن'],
-  witr: ['وتر'],
-  vitr: ['وتر'],
-  tahajjud: ['تہجد'],
-  nafil: ['نفل'],
-  qaza: ['قضا'],
-  kaza: ['قضا'],
-  musafir: ['مسافر', 'قصر', 'سفر'],
-  safar: ['سفر', 'مسافر', 'قصر'],
-  qasr: ['قصر', 'مسافر'],
-  jumma: ['جمعہ', 'خطبہ'],
   juma: ['جمعہ'],
-  jummah: ['جمعہ'],
+  jumma: ['جمعہ'],
   eid: ['عید', 'عیدین'],
-  taraweeh: ['تراویح'],
+  witr: ['وتر'],
+  tahajjud: ['تہجد'],
   tarawih: ['تراویح'],
-  janaza: ['جنازہ', 'میت', 'قبر'],
-  janazah: ['جنازہ', 'میت'],
-  mayyat: ['میت', 'جنازہ'],
-  maiyat: ['میت', 'جنازہ'],
-  kafan: ['کفن', 'میت'],
-  dafan: ['دفن', 'قبر'],
-  qabar: ['قبر', 'مزار'],
-  qabr: ['قبر'],
-  mazar: ['مزار', 'قبر'],
-  fatiha: ['فاتحہ', 'ایصال ثواب'],
-  esal: ['ایصال ثواب', 'فاتحہ'],
-  isaal: ['ایصال ثواب'],
-  sawab: ['ثواب', 'ایصال ثواب'],
-  roza: ['روزہ', 'صوم', 'سحری', 'افطار'],
-  rozah: ['روزہ'],
-  fast: ['روزہ'],
-  sehri: ['سحری', 'روزہ'],
-  iftar: ['افطار', 'روزہ'],
-  iftari: ['افطار', 'روزہ'],
-  kaffara: ['کفارہ', 'قسم', 'روزہ'],
-  fidya: ['فدیہ', 'روزہ'],
-  itikaf: ['اعتکاف'],
-  aitikaf: ['اعتکاف'],
-  zakat: ['زکوٰۃ', 'نصاب'],
-  zakaat: ['زکوٰۃ', 'نصاب'],
-  nisab: ['نصاب', 'زکوٰۃ'],
-  ushr: ['عشر', 'زکوٰۃ'],
-  fitrana: ['صدقہ فطر', 'فطرانہ'],
-  sadqa: ['صدقہ', 'خیرات'],
-  hajj: ['حج', 'احرام', 'طواف'],
+  taraweeh: ['تراویح'],
+  janaza: ['جنازہ', 'جنازے', 'الجنائز'],
+  qabar: ['قبر'],
+  zakat: ['زکوٰۃ', 'زکاۃ', 'الزكاة'],
+  zakaat: ['زکوٰۃ', 'زکاۃ'],
+  sadqa: ['صدقہ'],
+  sadaqa: ['صدقہ'],
+  hajj: ['حج', 'الحج'],
   haj: ['حج'],
   umrah: ['عمرہ'],
-  umra: ['عمرہ'],
-  ihram: ['احرام'],
-  ehram: ['احرام'],
-  tawaf: ['طواف'],
-  nikah: ['نکاح', 'شادی', 'مہر'],
-  nikaah: ['نکاح'],
-  shadi: ['نکاح', 'شادی', 'ولیمہ'],
-  shaadi: ['نکاح', 'شادی'],
-  mahr: ['مہر', 'حق مہر'],
-  mehr: ['مہر', 'حق مہر'],
-  walima: ['ولیمہ'],
-  razaat: ['رضاعت', 'دودھ'],
-  talaq: ['طلاق', 'عدت', 'خلع'],
-  talaaq: ['طلاق'],
-  divorce: ['طلاق'],
-  khula: ['خلع', 'طلاق'],
-  iddat: ['عدت', 'طلاق', 'بیوہ'],
-  halala: ['حلالہ', 'طلاق'],
-  ruju: ['رجوع'],
-  nafaqa: ['نفقہ', 'نان نفقہ'],
-  virasat: ['وراثت', 'ترکہ', 'میراث'],
-  wirasat: ['وراثت', 'میراث'],
-  miras: ['میراث', 'وراثت'],
-  meeras: ['میراث', 'وراثت'],
-  wasiyat: ['وصیت'],
-  tijarat: ['تجارت', 'خرید', 'فروخت', 'بیع'],
-  business: ['تجارت', 'کاروبار'],
-  karobar: ['کاروبار', 'تجارت'],
-  sood: ['سود', 'ربا', 'بینک'],
-  sud: ['سود', 'ربا'],
-  riba: ['ربا', 'سود'],
-  interest: ['سود', 'بینک'],
-  bank: ['بینک', 'سود'],
-  qarz: ['قرض', 'ادھار'],
-  udhar: ['ادھار', 'قرض'],
-  rishwat: ['رشوت'],
-  kiraya: ['کرایہ', 'اجارہ'],
-  ijara: ['اجارہ', 'کرایہ'],
-  shirkat: ['شراکت', 'شرکت'],
-  amanat: ['امانت'],
-  hiba: ['ہبہ', 'تحفہ'],
-  qurbani: ['قربانی', 'جانور'],
-  qurbaani: ['قربانی'],
-  aqeeqa: ['عقیقہ'],
+  roza: ['روزہ', 'روزے', 'صوم', 'الصوم'],
+  rozah: ['روزہ'],
+  sehri: ['سحری'],
+  iftar: ['افطار'],
+  itikaf: ['اعتکاف'],
+  tijarat: ['تجارت', 'خرید', 'فروخت', 'البيوع'],
+  kharid: ['خرید', 'فروخت'],
+  qarz: ['قرض'],
+  riba: ['سود', 'ربا'],
+  sood: ['سود'],
+  jihad: ['جہاد', 'الجهاد'],
+  anbiya: ['انبیاء'],
+  sahaba: ['صحابہ'],
+  ansar: ['انصار'],
+  quran: ['قرآن'],
+  tafsir: ['تفسیر'],
+  tafseer: ['تفسیر'],
+  nikah: ['نکاح', 'النكاح'],
+  shadi: ['نکاح', 'شادی'],
+  talaq: ['طلاق', 'الطلاق'],
+  khana: ['کھانا', 'کھانوں'],
+  qurbani: ['قربانی'],
   aqiqah: ['عقیقہ'],
-  zibah: ['ذبح', 'ذبیحہ'],
-  halal: ['حلال', 'حرام'],
-  haram: ['حرام', 'حلال'],
-  parda: ['پردہ', 'حجاب'],
-  pardah: ['پردہ'],
-  hijab: ['پردہ', 'حجاب'],
-  libas: ['لباس', 'کپڑے'],
-  kapde: ['کپڑے', 'لباس'],
-  dadhi: ['داڑھی'],
-  daarhi: ['داڑھی'],
-  beard: ['داڑھی'],
-  tasveer: ['تصویر', 'فوٹو'],
-  photo: ['تصویر'],
-  music: ['موسیقی', 'گانا'],
-  mausiqi: ['موسیقی'],
-  gana: ['گانا', 'موسیقی'],
-  sharab: ['شراب', 'نشہ'],
-  cigarette: ['سگریٹ', 'تمباکو'],
-  gold: ['سونا'],
-  sona: ['سونا', 'چاندی'],
-  chandi: ['چاندی'],
-  taweez: ['تعویذ', 'دم'],
-  dam: ['دم'],
-  qasam: ['قسم', 'کفارہ'],
-  mannat: ['نذر', 'منت'],
-  nazr: ['نذر'],
-  aqaid: ['عقائد', 'ایمان'],
-  aqeedah: ['عقائد', 'عقیدہ'],
-  iman: ['ایمان', 'عقائد'],
+  aqeeqa: ['عقیقہ'],
+  libas: ['لباس'],
+  kapde: ['لباس', 'کپڑے'],
+  adab: ['آداب', 'ادب'],
+  dua: ['دعا', 'دعاؤں'],
+  duaa: ['دعا', 'دعاؤں'],
+  taqdir: ['تقدیر'],
+  taqdeer: ['تقدیر'],
+  qasam: ['قسم'],
+  virasat: ['وراثت', 'فرائض'],
+  wirasat: ['وراثت', 'فرائض'],
+  khwab: ['خواب', 'خوابوں'],
+  fitna: ['فتنہ', 'فتنوں'],
+  tawheed: ['توحید'],
+  tauheed: ['توحید'],
+  jannat: ['جنت'],
+  jahannam: ['جہنم', 'دوزخ'],
+  tauba: ['توبہ'],
+  astaghfar: ['استغفار'],
+  darood: ['درود'],
+  durood: ['درود'],
+  maa: ['ماں', 'والدہ', 'والدین'],
+  baap: ['باپ', 'والد', 'والدین'],
+  walidain: ['والدین'],
+  padosi: ['پڑوسی', 'ہمسایہ'],
   shirk: ['شرک'],
-  bidat: ['بدعت'],
-  khatm: ['ختم نبوت'],
-  nubuwwat: ['ختم نبوت', 'نبوت'],
-  ghaib: ['علم غیب'],
-  noor: ['نور', 'بشر'],
-  milad: ['میلاد', 'میلا د'],
-  meelad: ['میلاد'],
-  darood: ['درود', 'سلام'],
-  durood: ['درود', 'سلام'],
-  salam: ['سلام', 'درود'],
-  tawassul: ['توسل', 'استمداد'],
-  taqleed: ['تقلید', 'حنفی'],
-  hanafi: ['حنفی', 'تقلید'],
-  tasawwuf: ['تصوف', 'بیعت'],
-  bayt: ['بیعت', 'مرید'],
-  peer: ['پیر', 'مرید'],
-  mureed: ['مرید', 'بیعت'],
-  bivi: ['بیوی', 'نکاح', 'طلاق'],
-  biwi: ['بیوی', 'نکاح', 'طلاق'],
-  shohar: ['شوہر', 'نکاح', 'طلاق'],
-  aurat: ['عورت', 'پردہ', 'حیض'],
-  baap: ['باپ', 'والد', 'وراثت'],
-  maa: ['ماں', 'والدہ', 'وراثت'],
-  beta: ['بیٹا', 'وراثت', 'عقیقہ'],
-  beti: ['بیٹی', 'وراثت', 'عقیقہ'],
-  beva: ['بیوہ', 'عدت', 'وراثت'],
+  ghaibat: ['غیبت'],
+  jhoot: ['جھوٹ'],
+  abuhuraira: ['ابوہریرہ'],
+  aisha: ['عائشہ'],
+  bukhari: ['بخاری'],
 };
 
-// Urdu common synonym groups so searching "آسان اردو" or common terms matches
-const URDU_SYNONYM_MAP: Record<string, string[]> = {
+const URDU_SYNONYMS: Record<string, string[]> = {
+  'نماز': ['صلاۃ', 'الصلاة'],
+  'صلاۃ': ['نماز', 'الصلاة'],
+  'روزہ': ['صوم', 'الصوم', 'روزے'],
+  'زکوٰۃ': ['زکاۃ', 'الزكاة'],
+  'زکاۃ': ['زکوٰۃ', 'الزكاة'],
+  'تجارت': ['بیوع', 'البيوع', 'خرید', 'فروخت'],
+  'وراثت': ['فرائض', 'ترکہ', 'میراث'],
   'شادی': ['نکاح', 'ولیمہ'],
-  'بیوی': ['عورت', 'نکاح', 'طلاق', 'مہر'],
-  'شوہر': ['مرد', 'نکاح', 'طلاق'],
-  'بچہ': ['عقیقہ', 'رضاعت', 'وراثت'],
-  'ماہواری': ['حیض', 'استحاضہ'],
-  'فوت': ['میت', 'جنازہ', 'دفن', 'وراثت'],
-  'موت': ['میت', 'جنازہ', 'انتقال'],
-  'انتقال': ['میت', 'جنازہ', 'وراثت', 'عدت'],
-  'بینک': ['سود', 'ربا', 'قرض'],
-  'پیسے': ['مال', 'قرض', 'زکوٰۃ', 'سود'],
-  'فوٹو': ['تصویر'],
-  'گانا': ['موسیقی', 'باجا'],
-  'منت': ['نذر'],
-  'جائیداد': ['وراثت', 'ترکہ', 'میراث'],
-  'حصہ': ['وراثت', 'قربانی', 'ترکہ'],
-  'کرایہ': ['اجارہ'],
-  'ٹوٹنا': ['نواقض', 'فاسد', 'ٹوٹ'],
-  'ٹوٹ': ['نواقض', 'فاسد', 'ٹوٹنا'],
-  'بھول': ['سجدہ سہو', 'سہو', 'بھولے'],
-  'سفر': ['مسافر', 'قصر'],
-  'زکات': ['زکوٰۃ', 'زکوۃ'],
-  'صلوۃ': ['نماز', 'صلوٰۃ'],
-  'طہارت': ['پاکی', 'وضو', 'غسل'],
+  'دعا': ['دعاؤں', 'الدعوات'],
+  'کھانا': ['کھانوں', 'الأطعمة'],
+  'والدین': ['ماں', 'باپ', 'والد', 'والدہ'],
+  'پڑوسی': ['ہمسایہ'],
 };
 
 const STOP_WORDS = new Set([
   'ka', 'ki', 'ke', 'ko', 'se', 'mein', 'me', 'par', 'pe', 'aur', 'ya', 'hai', 'hain',
-  'ho', 'hota', 'hoti', 'masla', 'masail', 'hukm', 'kya', 'kaise', 'kab', 'agar',
-  'کا', 'کی', 'کے', 'کو', 'سے', 'میں', 'پر', 'اور', 'یا', 'ہے', 'ہیں', 'ہو', 'مسئلہ', 'مسائل', 'حکم', 'کیا', 'اگر',
+  'hadith', 'hadees', 'hadis', 'number', 'no', 'bukhari',
+  'کا', 'کی', 'کے', 'کو', 'سے', 'میں', 'پر', 'اور', 'یا', 'ہے', 'ہیں', 'حدیث', 'نمبر',
 ]);
 
-export interface SearchResult {
-  masla: Masla;
+interface NormalizedEntry {
+  numNorm: string;
+  numBase: string;
+  bookNorm: string;
+  narratorNorm: string;
+  arabicNorm: string;
+  urduNorm: string;
+}
+
+const normCache = new WeakMap<Hadith, NormalizedEntry>();
+
+function getNormalized(h: Hadith): NormalizedEntry {
+  let cached = normCache.get(h);
+  if (cached) return cached;
+
+  const book = getBookMeta(h.bookNumber);
+  const bookStr = book
+    ? `${book.titleArabic} ${book.titleUrdu} کتاب ${book.bookNumber}`
+    : `کتاب ${h.bookNumber}`;
+
+  cached = {
+    numNorm: h.hadithNumber.toLowerCase(),
+    numBase: String(Math.floor(Number(h.hadithNumber))),
+    bookNorm: normalizeArabicUrdu(bookStr),
+    narratorNorm: normalizeArabicUrdu(h.narrator),
+    arabicNorm: normalizeArabicUrdu(h.arabicText),
+    urduNorm: normalizeArabicUrdu(h.urduText),
+  };
+  normCache.set(h, cached);
+  return cached;
+}
+
+export interface SearchHadithResult {
+  hadith: Hadith;
   score: number;
 }
 
-export function searchMasail(masail: Masla[], rawQuery: string): SearchResult[] {
+export function searchHadiths(hadiths: Hadith[], rawQuery: string): SearchHadithResult[] {
   const trimmed = rawQuery.trim();
   if (!trimmed) return [];
 
-  const normUrduQuery = normalizeUrdu(trimmed);
+  // Direct Hadith Number detection (e.g., "1", "256", "حدیث 50", "hadith 7563")
+  const numMatch = trimmed.match(/^(?:حدیث(?:\s*نمبر)?|hadith|hadees|#)?\s*(\d{1,4}(?:\.\d+)?)$/i);
+  if (numMatch) {
+    const targetNum = numMatch[1];
+    const targetBase = String(Math.floor(Number(targetNum)));
+    const exactMatches: SearchHadithResult[] = [];
+    for (const h of hadiths) {
+      if (h.hadithNumber === targetNum) {
+        exactMatches.push({ hadith: h, score: 1000 });
+      } else if (String(Math.floor(Number(h.hadithNumber))) === targetBase) {
+        exactMatches.push({ hadith: h, score: 900 });
+      } else if (h.hadithNumber.startsWith(targetBase)) {
+        exactMatches.push({ hadith: h, score: 200 });
+      }
+    }
+    if (exactMatches.length > 0) {
+      exactMatches.sort((a, b) => b.score - a.score || Number(a.hadith.hadithNumber) - Number(b.hadith.hadithNumber));
+      return exactMatches;
+    }
+  }
+
+  const normQuery = normalizeArabicUrdu(trimmed);
   const normRomanQuery = normalizeRoman(trimmed);
 
-  // Split tokens
   const rawTokens = trimmed
     .split(/[\s،,]+/)
     .map((t) => t.trim())
@@ -287,103 +228,89 @@ export function searchMasail(masail: Masla[], rawQuery: string): SearchResult[] 
   const expandedGroups: string[][] = [];
 
   for (const token of rawTokens) {
-    const uTok = normalizeUrdu(token);
+    const uTok = normalizeArabicUrdu(token);
     const rTok = normalizeRoman(token);
     if (STOP_WORDS.has(uTok) || STOP_WORDS.has(rTok)) continue;
 
-    const group = new Set<string>([uTok, rTok]);
+    const group = new Set<string>([uTok]);
 
-    // Check direct Roman map
     if (ROMAN_TO_URDU_MAP[rTok]) {
-      ROMAN_TO_URDU_MAP[rTok].forEach((u) => group.add(normalizeUrdu(u)));
-    }
-    // Check normalized keys in Roman map
-    for (const [key, vals] of Object.entries(ROMAN_TO_URDU_MAP)) {
-      const nKey = normalizeRoman(key);
-      if (nKey === rTok || (rTok.length >= 3 && (nKey.startsWith(rTok) || rTok.startsWith(nKey)))) {
-        vals.forEach((u) => group.add(normalizeUrdu(u)));
-        group.add(nKey);
-      }
-    }
-    // Check Urdu synonym map
-    for (const [uKey, vals] of Object.entries(URDU_SYNONYM_MAP)) {
-      if (normalizeUrdu(uKey) === uTok) {
-        vals.forEach((u) => group.add(normalizeUrdu(u)));
+      ROMAN_TO_URDU_MAP[rTok].forEach((u) => group.add(normalizeArabicUrdu(u)));
+    } else if (rTok.length >= 3) {
+      for (const [key, vals] of Object.entries(ROMAN_TO_URDU_MAP)) {
+        const nKey = normalizeRoman(key);
+        if (nKey === rTok || nKey.startsWith(rTok) || rTok.startsWith(nKey)) {
+          vals.forEach((u) => group.add(normalizeArabicUrdu(u)));
+        }
       }
     }
 
-    expandedGroups.push(Array.from(group).filter((g) => g.length >= 2));
+    for (const [uKey, vals] of Object.entries(URDU_SYNONYMS)) {
+      if (normalizeArabicUrdu(uKey) === uTok) {
+        vals.forEach((u) => group.add(normalizeArabicUrdu(u)));
+      }
+    }
+
+    const filtered = Array.from(group).filter((g) => g.length >= 2);
+    if (filtered.length > 0) {
+      expandedGroups.push(filtered);
+    }
   }
 
-  // Fallback if all tokens were stop words
   if (expandedGroups.length === 0) {
-    expandedGroups.push([normUrduQuery, normRomanQuery].filter(Boolean));
+    if (normQuery.length >= 1) {
+      expandedGroups.push([normQuery]);
+    } else if (normRomanQuery.length >= 1) {
+      expandedGroups.push([normRomanQuery]);
+    } else {
+      return [];
+    }
   }
 
-  const results: SearchResult[] = [];
+  const results: SearchHadithResult[] = [];
 
-  for (const masla of masail) {
-    const titleN = normalizeUrdu(masla.title);
-    const topicN = normalizeUrdu(masla.topic);
-    const babN = normalizeUrdu(masla.bab ?? '');
-    const risalaN = normalizeUrdu(masla.risalaName ?? '');
-    const sawalStr = masla.sawalNumber ? String(masla.sawalNumber) : '';
-    const questionN = normalizeUrdu(masla.question);
-    const answerN = normalizeUrdu(masla.answer);
-    const dalilN = normalizeUrdu(masla.dalil);
-    const explanationN = normalizeUrdu(masla.explanation);
-    const keywordsUrduN = masla.keywords.map(normalizeUrdu).join(' ');
-    const keywordsRomanN = masla.keywords.map(normalizeRoman).join(' ');
-
+  for (const h of hadiths) {
+    const entry = getNormalized(h);
     let score = 0;
 
-    // Exact full phrase boost
-    if (normUrduQuery.length >= 2) {
-      if (titleN.includes(normUrduQuery)) score += 30;
-      if (questionN.includes(normUrduQuery)) score += 22;
-      if (topicN.includes(normUrduQuery) || babN.includes(normUrduQuery) || risalaN.includes(normUrduQuery)) {
-        score += 20;
-      }
-    }
-    if (sawalStr && trimmed === sawalStr) {
-      score += 25;
-    }
-    if (normRomanQuery.length >= 2 && keywordsRomanN.includes(normRomanQuery)) {
-      score += 24;
+    if (normQuery.length >= 2) {
+      if (entry.bookNorm.includes(normQuery)) score += 28;
+      if (entry.narratorNorm.includes(normQuery)) score += 24;
+      if (entry.urduNorm.includes(normQuery)) score += 22;
+      if (entry.arabicNorm.includes(normQuery)) score += 22;
     }
 
-    let matchedGroupCount = 0;
+    let matchedGroups = 0;
 
     for (const group of expandedGroups) {
       let groupScore = 0;
       for (const term of group) {
-        if (topicN.includes(term) || babN.includes(term) || risalaN.includes(term)) {
-          groupScore = Math.max(groupScore, 14);
-        }
-        if (titleN.includes(term)) groupScore = Math.max(groupScore, 12);
-        if (keywordsUrduN.includes(term)) groupScore = Math.max(groupScore, 11);
-        if (keywordsRomanN.includes(term)) groupScore = Math.max(groupScore, 11);
-        if (questionN.includes(term)) groupScore = Math.max(groupScore, 9);
-        if (answerN.includes(term)) groupScore = Math.max(groupScore, 6);
-        if (explanationN.includes(term)) groupScore = Math.max(groupScore, 5);
-        if (dalilN.includes(term)) groupScore = Math.max(groupScore, 3);
+        if (entry.bookNorm.includes(term)) groupScore = Math.max(groupScore, 14);
+        if (entry.narratorNorm.includes(term)) groupScore = Math.max(groupScore, 12);
+        if (entry.urduNorm.includes(term)) groupScore = Math.max(groupScore, 10);
+        if (entry.arabicNorm.includes(term)) groupScore = Math.max(groupScore, 10);
       }
       if (groupScore > 0) {
-        matchedGroupCount++;
+        matchedGroups++;
         score += groupScore;
       }
     }
 
-    // Bonus for matching all search terms
-    if (expandedGroups.length > 1 && matchedGroupCount === expandedGroups.length) {
-      score += 15;
+    if (expandedGroups.length > 1 && matchedGroups === expandedGroups.length) {
+      score += 18;
     }
 
     if (score > 0) {
-      results.push({ masla, score });
+      // Slightly prefer primary hadith entries over sub-variants
+      if (h.isPrimary) score += 1;
+      results.push({ hadith: h, score });
     }
   }
 
-  results.sort((a, b) => b.score - a.score || a.masla.volume - b.masla.volume);
+  results.sort(
+    (a, b) =>
+      b.score - a.score ||
+      Number(a.hadith.hadithNumber) - Number(b.hadith.hadithNumber)
+  );
   return results;
 }

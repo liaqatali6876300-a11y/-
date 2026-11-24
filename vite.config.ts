@@ -21,10 +21,10 @@ export default defineConfig(() => {
         ],
         manifest: {
           id: '/',
-          name: 'Fatawa Razvia - مکمل 30 جلدیں',
-          short_name: 'Fatawa Razvia',
+          name: 'صحیح بخاری شریف - مکمل 7 جلدیں',
+          short_name: 'صحیح بخاری',
           description:
-            'فتاویٰ رضویہ کی تمام 30 جلدوں سے مستند شرعی مسائل اردو اور رومن اردو میں تلاش کرنے کی مکمل آف لائن اسلامی ایپ۔',
+            'صحیح بخاری شریف کی تمام 7 جلدوں، 97 کتابوں اور 7563 احادیث کا مکمل عربی متن و اردو ترجمہ آف لائن پڑھنے اور تلاش کرنے کی ایپ۔',
           theme_color: '#0B3D2E',
           background_color: '#FFF8E7',
           display: 'standalone',
@@ -54,7 +54,7 @@ export default defineConfig(() => {
           ],
         },
         workbox: {
-          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2,json}'],
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
           runtimeCaching: [
             {

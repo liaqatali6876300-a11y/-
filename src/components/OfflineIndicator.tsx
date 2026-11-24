@@ -15,7 +15,7 @@ export const OfflineIndicator: React.FC = () => {
     >
       <WifiOff className="w-4 h-4 text-[#0B3D2E] dark:text-[#C9A227] shrink-0" aria-hidden="true" />
       <span className="text-xs sm:text-sm text-[var(--text-primary)] urdu-text">
-        آف لائن موڈ — تمام 30 جلدیں بغیر انٹرنیٹ کے چل رہی ہیں
+        آف لائن موڈ — تمام 7 جلدیں اور 7,563 احادیث بغیر انٹرنیٹ کے چل رہی ہیں
       </span>
     </div>
   );

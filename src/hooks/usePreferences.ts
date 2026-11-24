@@ -10,9 +10,9 @@ const FONT_SCALE_MAP: Record<FontSizeKey, number> = {
   xl: 1.36,
 };
 
-const STORAGE_THEME = 'fatawa_razvia_theme';
-const STORAGE_FONT = 'fatawa_razvia_font';
-const STORAGE_BOOKMARKS = 'fatawa_razvia_bookmarks';
+const STORAGE_THEME = 'sahih_bukhari_theme';
+const STORAGE_FONT = 'sahih_bukhari_font';
+const STORAGE_BOOKMARKS = 'sahih_bukhari_bookmarks';
 
 export function usePreferences() {
   const [theme, setTheme] = useState<ThemeMode>(() => {
@@ -43,7 +43,6 @@ export function usePreferences() {
     }
   });
 
-  // Sync .dark class on <html>
   useEffect(() => {
     const root = document.documentElement;
     if (theme === 'dark') {
@@ -62,7 +61,6 @@ export function usePreferences() {
     }
   }, [theme]);
 
-  // Sync --font-scale CSS variable on <html>
   useEffect(() => {
     document.documentElement.style.setProperty(
       '--font-scale',
@@ -75,7 +73,6 @@ export function usePreferences() {
     }
   }, [fontSize]);
 
-  // Persist bookmarks
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_BOOKMARKS, JSON.stringify(bookmarks));
@@ -104,16 +101,16 @@ export function usePreferences() {
     });
   }, []);
 
-  const toggleBookmark = useCallback((maslaId: string) => {
+  const toggleBookmark = useCallback((hadithId: string) => {
     setBookmarks((prev) =>
-      prev.includes(maslaId)
-        ? prev.filter((id) => id !== maslaId)
-        : [maslaId, ...prev]
+      prev.includes(hadithId)
+        ? prev.filter((id) => id !== hadithId)
+        : [hadithId, ...prev]
     );
   }, []);
 
   const isBookmarked = useCallback(
-    (maslaId: string) => bookmarks.includes(maslaId),
+    (hadithId: string) => bookmarks.includes(hadithId),
     [bookmarks]
   );
 

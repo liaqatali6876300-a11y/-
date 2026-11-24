@@ -1,13 +1,11 @@
 import React from 'react';
 import { BookMarked, ChevronLeft } from 'lucide-react';
 import {
-  ALL_MASAIL,
-  TOTAL_PRINTED_FATWAS,
-  TOTAL_PRINTED_PAGES,
-  TOTAL_RASAIL,
-  getMasailByVolume,
-} from '../data/allMasail';
-import { VOLUMES_META } from '../data/volumesMeta';
+  TOTAL_BOOKS,
+  TOTAL_HADITHS_UNIQUE,
+  TOTAL_HADITHS_WITH_REPEATS,
+  VOLUMES_META,
+} from '../data/bukhariMeta';
 
 interface VolumeListProps {
   onSelectVolume: (volumeNumber: number) => void;
@@ -21,16 +19,15 @@ export const VolumeList: React.FC<VolumeListProps> = ({ onSelectVolume }) => {
           id="volumes-heading"
           className="text-3xl sm:text-4xl text-[#0B3D2E] dark:text-[#E8C547] urdu-heading"
         >
-          مکمل 30 جلدیں (جلد نمبر 1 تا جلد نمبر 30)
+          مکمل 7 جلدیں (جلد نمبر 1 تا جلد نمبر 7)
         </h2>
         <p className="text-base sm:text-lg text-[var(--text-secondary)] urdu-text tabular-nums">
-          کل سوال جواب: {TOTAL_PRINTED_FATWAS.toLocaleString('en-US')} · رسائل: {TOTAL_RASAIL} · صفحات: {TOTAL_PRINTED_PAGES.toLocaleString('en-US')}+ · شامل مکمل فتاویٰ: {ALL_MASAIL.length}
+          کل کتابیں: {TOTAL_BOOKS} · احادیث (مع تکرار): {TOTAL_HADITHS_WITH_REPEATS.toLocaleString('en-US')} · بغیر تکرار: {TOTAL_HADITHS_UNIQUE.toLocaleString('en-US')}
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {VOLUMES_META.map((vol) => {
-          const count = getMasailByVolume(vol.volume).length;
           return (
             <button
               key={vol.volume}
@@ -51,14 +48,12 @@ export const VolumeList: React.FC<VolumeListProps> = ({ onSelectVolume }) => {
                       {vol.subtitle}
                     </p>
                     <div className="mt-2.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-base sm:text-lg text-[#FFFDF5] urdu-text tabular-nums">
-                      <span>سوال جواب: {vol.totalFatwas}</span>
+                      <span>کتابیں: {vol.bookCount}</span>
                       <span className="text-[#C9A227]" aria-hidden="true">·</span>
-                      <span>رسائل: {vol.rasailCount}</span>
-                      <span className="text-[#C9A227]" aria-hidden="true">·</span>
-                      <span>صفحات: {vol.printedPages}</span>
+                      <span>احادیث: {vol.hadithCount.toLocaleString('en-US')}</span>
                     </div>
                     <p className="mt-1 text-base sm:text-lg text-[#F2D15B] urdu-text tabular-nums">
-                      ابواب: {vol.abwab.length} · شامل مکمل فتاویٰ: {count}
+                      حدیث نمبر {vol.firstHadith} تا {vol.lastHadith}
                     </p>
                   </div>
                 </div>

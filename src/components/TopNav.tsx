@@ -2,7 +2,7 @@ import React from 'react';
 import { BookOpen } from 'lucide-react';
 import { PWAInstallButton } from './PWAInstallButton';
 
-export type ActiveTab = 'home' | 'topics' | 'bookmarks';
+export type ActiveTab = 'home' | 'books' | 'bookmarks';
 
 interface TopNavProps {
   activeTab: ActiveTab;
@@ -27,7 +27,7 @@ export const TopNav: React.FC<TopNavProps> = ({
           className="flex items-center gap-2.5 text-[#FFF8E7] hover:text-[#E8C547] transition-colors whitespace-nowrap shrink-0 cursor-pointer min-h-[44px]"
         >
           <BookOpen className="w-6 h-6 text-[#C9A227] shrink-0" aria-hidden="true" />
-          <span className="text-xl sm:text-2xl urdu-heading">فتاویٰ رضویہ</span>
+          <span className="text-xl sm:text-2xl urdu-heading">صحیح بخاری شریف</span>
         </button>
 
         {/* Zone 2: Concise single-line navigation links */}
@@ -41,19 +41,19 @@ export const TopNav: React.FC<TopNavProps> = ({
                 : 'text-[#FFF8E7]/90 border-transparent hover:text-[#E8C547]'
             }`}
           >
-            30 جلدیں
+            7 جلدیں
           </button>
 
           <button
             type="button"
-            onClick={() => onSelectTab('topics')}
+            onClick={() => onSelectTab('books')}
             className={`whitespace-nowrap shrink-0 py-2 text-base sm:text-lg urdu-text transition-colors border-b-2 cursor-pointer min-h-[44px] flex items-center ${
-              activeTab === 'topics'
+              activeTab === 'books'
                 ? 'text-[#E8C547] border-[#C9A227]'
                 : 'text-[#FFF8E7]/90 border-transparent hover:text-[#E8C547]'
             }`}
           >
-            موضوعات
+            97 کتابیں
           </button>
 
           <button

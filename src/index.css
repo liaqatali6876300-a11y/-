@@ -79,6 +79,17 @@
   text-wrap: balance;
 }
 
+.arabic-hadith {
+  font-family: 'Amiri Quran', 'Scheherazade New', serif;
+  font-weight: 400;
+  line-height: 2.55;
+  letter-spacing: 0;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  font-size: calc(2.05rem * var(--font-scale));
+  direction: rtl;
+  text-align: right;
+}
+
 .islamic-card {
   background-color: var(--bg-surface);
   border: 1.5px solid var(--border-subtle);
